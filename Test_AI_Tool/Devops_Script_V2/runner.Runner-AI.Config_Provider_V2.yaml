@@ -1,0 +1,31 @@
+trigger: none
+
+resources:
+  repositories:
+  - repository: baseline_project_repo
+    name: DevOps/_git/devops-common-utils
+    type: git
+    ref: main
+
+pool:
+  vmImage: ubuntu-latest
+
+name: $(myconfigID)
+
+variables:
+- group: runner_Runner-AI
+- name: release_version
+  value: $(Build.SourceBranchName)
+- name: myconfigID
+  value: $[variables.configID]
+
+
+steps:
+  - checkout: self #my_current_repo
+    path: s
+    displayName: 'Checking out my_current_repo'
+
+  - checkout: baseline_project_repo
+    displayName: Cheking baseline_project_repo
+
+  - template: /pipelines/ci_config_provider.yaml@baseline_project_repo

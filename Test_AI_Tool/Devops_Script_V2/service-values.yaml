@@ -1,0 +1,136 @@
+## This file will be used to deploy the service repo
+
+# General application info
+organization: dpwhotfsonline
+productName: runner
+azureProject: DTLP
+appName: runner-ai
+repoName: Runner-AI
+repoId: 65c3464a-4c3a-45cb-a946-cd81b6993faf
+serviceType: backend
+language: Python
+branching: Release
+infra: K8s
+containerRegistryURL: acrcargoesrunner.azurecr.io
+libraryVariableGroupName: runner_Runner-AI
+libraryVariableGroupId: 656
+allEnvironments: ['development', 'staging' ]
+bluegreen: True
+artifactAliasName: _config
+artifactVstsFeedPublish: 23a36ede-eaaf-42ed-b849-690d3430f272/a67328f9-92da-4e2b-9dff-423638a119ea
+CONFIG_FOLDER_PATH: Devops_Scripts_V2
+containerRegistrySC: ACR_Cargoes Runner
+
+
+# Service configuration
+service:
+  name: runner-ai-svc
+  type: ClusterIP
+  port: 80
+  targetPort: 5000
+
+# ConfigMap configuration
+configMap:
+  name: runner-ai-cm
+  data:
+    NEW_RELIC_ENABLED: true
+    NEW_RELIC_LOG_ENABLED: true
+    NEW_RELIC_DISTRIBUTED_TRACING_ENABLED: true
+    NEW_RELIC_LOG_LEVEL: info
+
+# Horizontal Pod Autoscaler (HPA) configuration
+hpa:
+  name: runner-ai-hpa
+  enabled: true
+  avgCpuUtil: 80
+  stableSec: 300
+  scaleUpCount: 1
+  scaleUpSec: 60
+
+# Deployment configuration
+deployment:
+  name: runner-ai-deployment
+  imageName: runner-ai
+  imageTag: latest
+  port: 5000
+  healthCheck: /ai/health
+  initialDelaySeconds: 30
+  securityContext: disabled
+
+# Ingress configuration
+ingress:
+  name: runner-ai-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+  rules:
+    - paths:
+        - path: /ai
+          pathType: Prefix
+          serviceName: runner-ai-svc
+          servicePort: 80
+
+# gateway configuration
+gateway:
+  name: runner-ai-gateway
+  paths:
+    - path: /ai
+  backendRefs:
+    name: runner-ai-svc
+    port: 80
+
+# SecretProvider configuration
+secretprovider:
+  name: runner-ai-secretproviderclass
+  nonProdUserAssignedIdentityID: c91d1283-5c7c-40f7-8259-ca222695a9f8
+  nonProdKeyVaultName: cargoesrunner-nonprod-kv
+  prodUserAssignedIdentityID: d50883f6-2c0a-4fdb-b659-6176f5fb0be5
+  prodKeyVaultName: kv-cargorunner-prod
+  drUserAssignedIdentityID: 64b39da5-ace2-4052-9950-620d247d5a06
+  drKeyVaultName: kv-cargorunner-proddr
+  tenantId: 2bd16c9b-7e21-4274-9c06-7919f7647bbb
+
+development:
+  cicd: Full
+  envName: development
+  namespace: runner-ai-development-ns
+  hpa:
+    minReplicas: 1
+    maxReplicas: 3
+  hostUrlList:
+  - dev-runner.cargoes.com
+  configMap:
+    data:
+      APP_ENV: development
+      NEW_RELIC_APP_NAME: Runner-AI-development
+  secretName:
+  - runner-ai-development-SECRET
+  deployment:
+    replicaCount: 1
+    args: . /mnt/secrets-store/runner-ai-development-SECRET && python3 app.py
+    minCpu: 500m
+    maxCpu: 800m
+    minMem: 1000Mi
+    maxMem: 2000Mi
+
+staging:
+  cicd: Full
+  envName: staging
+  namespace: runner-ai-staging-ns
+  hpa:
+    minReplicas: 1
+    maxReplicas: 3
+  hostUrlList:
+  - staging-runner.cargoes.com
+  configMap:
+    data:
+      APP_ENV: staging
+      NEW_RELIC_APP_NAME: Runner-AI-staging
+  secretName:
+  - runner-ai-staging-SECRET
+  deployment:
+    replicaCount: 1
+    args: . /mnt/secrets-store/runner-ai-staging-SECRET && python3 app.py
+    minCpu: 500m
+    maxCpu: 800m
+    minMem: 1000Mi
+    maxMem: 2000Mi
