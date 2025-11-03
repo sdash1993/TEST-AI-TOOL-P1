@@ -1,0 +1,30 @@
+trigger:
+  batch: true
+  branches:
+    include:
+      - development
+      - test
+
+resources:
+  repositories:
+  - repository: baseline_project_repo
+    name: DevOps/_git/devops-common-utils
+    type: git
+    ref: main
+
+variables:
+- name: containerRegistrySC
+  value: ACR_Cargoes Runner
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - checkout: self #my_current_repo
+    path: s
+    displayName: 'Checking out my_current_repo'
+
+  - checkout: baseline_project_repo
+    displayName: Cheking baseline_project_repo
+
+  - template: /pipelines/ci_basic_build.yaml@baseline_project_repo

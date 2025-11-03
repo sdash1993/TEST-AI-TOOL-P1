@@ -1,0 +1,36 @@
+trigger:
+  branches:
+    include:
+      - Release-v*
+      - release-v*
+
+  paths:
+    include:
+      - backend/k8s/**/*
+      - DevOps_Scripts/*
+      - newrelic/*
+      - k8s/*
+      - scripts/*
+      - sonar/*
+      - Dockerfile/*
+      - Devops_Scripts_V2/*
+
+resources:
+  repositories:
+  - repository: baseline_project_repo
+    name: DevOps/_git/devops-common-utils
+    type: git
+    ref: main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+  - checkout: self
+    path: s
+    displayName: 'Checking out my_current_repo'
+
+  - checkout: baseline_project_repo
+    displayName: Cheking baseline_project_repo
+
+  - template: /pipelines/devops_downmerge.yaml@baseline_project_repo

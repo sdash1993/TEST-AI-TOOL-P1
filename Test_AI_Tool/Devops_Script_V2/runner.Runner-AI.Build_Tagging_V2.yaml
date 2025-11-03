@@ -1,0 +1,35 @@
+trigger:
+  branches:
+    include:
+      - Central
+      - central
+      - Release-v*
+
+resources:
+  repositories:
+  - repository: baseline_project_repo
+    name: DevOps/_git/devops-common-utils
+    type: git
+    ref: main
+
+pool:
+  vmImage: ubuntu-latest
+
+name: $(Rev:r)
+
+variables:
+- group: runner_Runner-AI
+- name: current_release_version
+  value: ''
+- name: current_new_tag_number
+  value: ''
+
+steps:
+  - checkout: self #my_current_repo
+    path: s
+    displayName: 'Checking out my_current_repo'
+
+  - checkout: baseline_project_repo
+    displayName: Cheking baseline_project_repo
+
+  - template: /pipelines/ci_build_tagging.yaml@baseline_project_repo
