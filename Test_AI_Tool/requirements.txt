@@ -7,3 +7,6 @@ python-docx==1.1.0
 dotenv
 langchain-google-genai
 langchain
+pandas==2.2.3
+openpyxl==3.1.2
+Werkzeug==3.0.1
